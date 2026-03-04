@@ -1,5 +1,5 @@
 #!/bin/bash
-set -euo pipefail
+set -euo
 
 CONFIG_FILE="${OPENCLAW_STATE_DIR}/openclaw.json"
 

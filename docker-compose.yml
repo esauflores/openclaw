@@ -1,4 +1,17 @@
 services:
+  # Add this if dev-tools is isolated for openclaw
+  # dev-tools:
+  #   build:
+  #     context: dev-tools
+  #     args:
+  #       - MISE_VERSION=2026.1.7
+  #       - TOOLS_DIR=/tools
+  #   environment:
+  #     - GITHUB_TOKEN=${GITHUB_TOKEN}
+  #   volumes:
+  #     - dev-tools:/tools
+  #   restart: no
+
   tailscale:
     build: tunnel
     hostname: ${TS_HOSTNAME}
@@ -14,7 +27,7 @@ services:
       - TS_AUTHKEY=${TS_AUTHKEY}
       - TS_HOSTNAME=${TS_HOSTNAME}
       - TS_STATE_DIR=/var/lib/tailscale
-      - TS_USERSPACE=true
+      - TS_USERSPACE=false
     restart: unless-stopped
 
   filebrowser:
@@ -26,25 +39,11 @@ services:
       - PUID=${PUID:-1000}
       - PGID=${PGID:-1000}
       - FB_PORT=${FB_PORT:-8080}
-    network_mode: host
     restart: unless-stopped
-
-  dev-tools:
-    build:
-      context: dev-tools
-      args:
-        - MISE_VERSION=2026.1.7
-        - TOOLS_DIR=/tools
-    environment:
-      - GITHUB_TOKEN=${GITHUB_TOKEN}
-    volumes:
-      - dev-tools:/tools
-    restart: no
 
   openclaw:
     build: .
     environment:
-      HOME: /home/node
       TERM: xterm-256color
       OPENCLAW_GATEWAY_TOKEN: ${OPENCLAW_GATEWAY_TOKEN}
       OPENCLAW_ALLOW_INSECURE_PRIVATE_WS: ${OPENCLAW_ALLOW_INSECURE_PRIVATE_WS:-1}
@@ -55,20 +54,12 @@ services:
     volumes:
       - openclaw-data:/openclaw
       - dev-tools:/tools:ro
-    network_mode: host
     init: true
     restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "curl", "-sf", "http://127.0.0.1:18789/healthz"]
-      interval: 10s
-      timeout: 10s
-      retries: 5
-    depends_on:
-      dev-tools:
-        condition: service_completed_successfully
 
 volumes:
+  dev-tools:
+    name: dev-tools
   tailscale-state:
   filebrowser-data:
-  dev-tools:
   openclaw-data:

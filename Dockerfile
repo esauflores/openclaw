@@ -1,10 +1,14 @@
 FROM ghcr.io/openclaw/openclaw:latest
 
+# Add additional tools and dependencies
+ENV PATH="/tools/shims:${PATH}"
+
 USER root
 
 # System tools
 RUN apt-get update \
-    && apt-get install -y --no-install-recommends git openssh-client bash \
+    && apt-get install -y --no-install-recommends \
+    git openssh-client bash \
     && rm -rf /var/lib/apt/lists/*
 
 # notesmd-cli

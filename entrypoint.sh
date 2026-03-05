@@ -1,6 +1,13 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+# Custom variable for openclaw dir: .openclaw and workspaces dirs will live here
+OPENCLAW_DIR="${OPENCLAW_DIR:-/openclaw}"
+mkdir -p "$OPENCLAW_DIR"
+if [ "$(stat -c %u "$OPENCLAW_DIR")" != "1000" ]; then
+  chown -R 1000:1000 "$OPENCLAW_DIR"
+fi
+
 CONFIG_FILE="${OPENCLAW_STATE_DIR}/openclaw.json"
 
 # Ensure config exists

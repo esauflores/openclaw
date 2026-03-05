@@ -1,4 +1,12 @@
 services:
+
+  # Add if isolated dev tools
+  # dev-tools:
+  #   build: dev-tools
+  #   volumes:
+  #     - dev-tools:/tools:ro
+  #   restart: unless-stopped
+
   filebrowser:
     build: filebrowser
     volumes:

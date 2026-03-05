@@ -11,6 +11,11 @@ RUN apt-get update \
     git openssh-client bash \
     && rm -rf /var/lib/apt/lists/*
 
+# Install Tailscale
+ARG TAILSCALE_VERSION=1.94.1
+ENV TAILSCALE_VERSION=${TAILSCALE_VERSION}
+RUN curl -fsSL https://tailscale.com/install.sh | sh
+
 # notesmd-cli
 ARG NOTESMD_VERSION=0.3.1
 RUN curl -fsSL https://github.com/Yakitrak/notesmd-cli/releases/download/v${NOTESMD_VERSION}/notesmd-cli_${NOTESMD_VERSION}_linux_amd64.tar.gz \

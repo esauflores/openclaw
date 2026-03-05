@@ -5,7 +5,7 @@ services:
   #   build: dev-tools
   #   volumes:
   #     - dev-tools:/tools:ro
-  #   restart: unless-stopped
+  #   restart: no
 
   filebrowser:
     build: filebrowser

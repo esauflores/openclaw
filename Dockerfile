@@ -8,7 +8,7 @@ USER root
 # System tools
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
-    git openssh-client bash \
+    git openssh-client bash gosu \
     && rm -rf /var/lib/apt/lists/*
 
 # Install Tailscale

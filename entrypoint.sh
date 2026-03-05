@@ -1,42 +1,54 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Custom variable for openclaw dir: .openclaw and workspaces dirs will live here
 OPENCLAW_DIR="${OPENCLAW_DIR:-/openclaw}"
-mkdir -p "$OPENCLAW_DIR"
-if [ "$(stat -c %u "$OPENCLAW_DIR")" != "1000" ]; then
-  chown -R 1000:1000 "$OPENCLAW_DIR"
-fi
+OPENCLAW_STATE_DIR="${OPENCLAW_STATE_DIR:-${OPENCLAW_DIR}/.openclaw}"
 
+mkdir -p "${OPENCLAW_STATE_DIR}"
 CONFIG_FILE="${OPENCLAW_STATE_DIR}/openclaw.json"
 
-# Ensure config exists
-if [ ! -f "$CONFIG_FILE" ]; then
-  mkdir -p "$OPENCLAW_STATE_DIR"
-  echo '{"gateway":{"mode":"local","bind":"loopback","tailscale":{"mode":"serve"}}}' >"$CONFIG_FILE"
+if [ ! -f "${CONFIG_FILE}" ]; then
+  echo "Creating default OpenClaw config..."
+  cat <<EOF > "${CONFIG_FILE}"
+{"gateway":{"mode":"local","bind":"loopback","tailscale":{"mode":"serve"}}}
+EOF
 fi
 
-# --- Start Tailscale ---
 echo "Starting tailscaled..."
-tailscaled --state=/var/lib/tailscale/tailscaled.state &
 
-# Wait for daemon socket to be ready
-until [ -S /var/run/tailscale/tailscaled.sock ]; do
+mkdir -p /var/run/tailscale
+mkdir -p /var/lib/tailscale
+
+tailscaled \
+  --state=/var/lib/tailscale/tailscaled.state \
+  --socket=/var/run/tailscale/tailscaled.sock &
+
+for i in {1..30}; do
+  [ -S /var/run/tailscale/tailscaled.sock ] && break
   sleep 1
 done
 
-# Authenticate if authkey provided; otherwise reconnect to existing state
+sleep 5
+
+chown node:node /var/run/tailscale/tailscaled.sock || true
+
+
 if [ -n "${TS_AUTHKEY:-}" ]; then
   echo "Authenticating with Tailscale..."
-  sleep 5 # Give tailscaled a moment to be fully ready
-  tailscale up \
+
+  tailscale --socket=/var/run/tailscale/tailscaled.sock up \
     --authkey="${TS_AUTHKEY}" \
     --hostname="${TS_HOSTNAME:-openclaw}" \
     --accept-routes \
     --reset
 else
-  echo "No TS_AUTHKEY; Tailscale running with existing state (if available)"
+  echo "No TS_AUTHKEY provided; using existing Tailscale state"
 fi
 
+# Set the Tailscale user to "node" for proper permissions
+tailscale --socket=/var/run/tailscale/tailscaled.sock set --operator=node
+
+chown -R node:node "${OPENCLAW_DIR}" || true
+
 echo "Starting OpenClaw..."
-exec node dist/index.js gateway --port 18789
+exec gosu node node dist/index.js gateway --port 18789

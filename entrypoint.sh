@@ -26,7 +26,7 @@ if [ -n "${TS_AUTHKEY:-}" ]; then
     --authkey="${TS_AUTHKEY}" \
     --hostname="${TS_HOSTNAME:-openclaw}" \
     --accept-routes \
-    --reset; do
+    --reset
 else
   echo "No TS_AUTHKEY; Tailscale running with existing state (if available)"
 fi

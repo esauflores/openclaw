@@ -1,9 +1,6 @@
 [submodule "dev-tools"]
 	path = dev-tools
 	url = https://github.com/esauflores/dev-tools.git
-[submodule "tunnel"]
-	path = tunnel
-	url = https://github.com/esauflores/tunnel.git
 [submodule "filebrowser"]
 	path = filebrowser
 	url = https://github.com/esauflores/filebrowser.git

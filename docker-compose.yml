@@ -30,7 +30,11 @@ services:
       TS_HOSTNAME: ${TS_HOSTNAME:-openclaw}
       # Openclaw
       OPENCLAW_STATE_DIR: /openclaw/.openclaw
+      # API Keys
       ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY}
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+      GEMINI_API_KEY: ${GEMINI_API_KEY}
+      COPILOT_GITHUB_TOKEN: ${COPILOT_GITHUB_TOKEN}
       BRAVE_API_KEY: ${BRAVE_API_KEY}
     cap_add:
       - NET_ADMIN

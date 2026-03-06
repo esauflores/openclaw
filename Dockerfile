@@ -1,11 +1,5 @@
 FROM ghcr.io/openclaw/openclaw:latest
 
-# Add additional tools and dependencies
-ENV MISE_DATA_DIR="/tools"
-ENV MISE_CONFIG_DIR="/tools/config"
-ENV MISE_CACHE_DIR="/tools/cache"
-ENV PATH="/tools/shims:/tools/bin:${PATH}"
-
 USER root
 
 # System tools

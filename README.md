@@ -1,95 +1,87 @@
 # openclaw
 
-**Custom, opinionated setup**: OpenClaw gateway with FileBrowser and Tailscale for internal access. This configuration is tailored to personal preferences and may differ from standard deployments.
+Minimal Docker setup with opinionated tools for running OpenClaw gateway with Tailscale.
 
-## Architecture
+## Tools included
 
-This project uses a modular Docker Compose setup with three main components:
+- `notesmd-cli` (CLI for managing Obsidian/Markdown notes)
+- `d2` (text-to-diagram scripting language)
+- `marp` (Markdown presentation converter)
 
-```
-openclaw/                   # Main gateway (runs Tailscale + OpenClaw)
-├── docker-compose.yml      # Main orchestration
-├── Dockerfile              # OpenClaw + Tailscale
+## What this does
+
+- Builds a single `openclaw` container from this repo.
+- Starts `tailscaled` inside the container.
+- Authenticates to Tailscale when `TS_AUTHKEY` is provided.
+- Runs OpenClaw gateway on port `18789` (inside container).
+
+## Project files
+
+```text
+openclaw/
+├── docker-compose.yml
+├── Dockerfile
 ├── entrypoint.sh
-├── dev-tools/              # Development tools container (shared volume)
-│   ├── docker-compose.yml
-│   ├── Dockerfile
-│   └── mise.toml           # Tool definitions (Node 24, Python 3.11, Go, etc.)
-└── filebrowser/            # Standalone file browser UI
-    ├── docker-compose.yml
-    ├── Dockerfile
-    └── entrypoint.sh
+└── .env.example
 ```
 
-## Services
+## Environment
 
-| Service       | Role                                                              |
-| ------------- | ----------------------------------------------------------------- |
-| `openclaw`    | Main gateway with Tailscale VPN access to internal network        |
-| `filebrowser` | Web-based file browser for browsing/managing files via browser UI |
-| `dev-tools`   | Build container that creates shared volume mounted into openclaw  |
-
-### Dev-Tools Integration
-
-The `dev-tools` container is opinionated and provides:
-
-- **Languages**: Node 24, Python 3.11, Go 1.26, DuckDB
-- **Package managers**: uv
-- **Utilities**: sops, age, mc, Supabase CLI, bat, eza, ripgrep, fzf, jq, yq, starship, gh
-
-This container builds once and creates a persistent Docker volume. The tools are mounted read-only into the `openclaw` container so they're available during gateway operations.
-
-## Environment Variables
-
-### OpenClaw & Tailscale
-
-| Variable      | Description                                                                             |
-| ------------- | --------------------------------------------------------------------------------------- |
-| `TS_AUTHKEY`  | Auth key from [Tailscale admin → Keys](https://login.tailscale.com/admin/settings/keys) |
-| `TS_HOSTNAME` | Node name that will appear in your Tailscale admin panel                                |
-| `PUID`        | User ID for file permissions (default: `1000`)                                          |
-| `PGID`        | Group ID for file permissions (default: `1000`)                                         |
-
-### FileBrowser
-
-| Variable      | Description                               |
-| ------------- | ----------------------------------------- |
-| `FB_PORT`     | FileBrowser port (default: `8080`)        |
-| `FB_USERNAME` | Initial admin username (default: `admin`) |
-| `FB_PASSWORD` | Initial admin password (default: `admin`) |
-
-### API Keys
-
-| Variable               | Description                       |
-| ---------------------- | --------------------------------- |
-| `ANTHROPIC_API_KEY`    | Anthropic API key                 |
-| `OPENAI_API_KEY`       | OpenAI API key                    |
-| `GEMINI_API_KEY`       | Google Gemini API key             |
-| `COPILOT_GITHUB_TOKEN` | GitHub token (for GitHub Copilot) |
-| `OPENROUTER_API_KEY`   | OpenRouter API key                |
-| `XAI_API_KEY`          | xAI API key                       |
-| `BRAVE_API_KEY`        | Brave Search API key              |
-
-## Quick Start
-
-1. Copy `.env.example` to `.env` and fill in your values:
+Copy the example file and update values:
 
 ```bash
 cp .env.example .env
 ```
 
-2. (Optional) Install dev-tools volume:
+### Required
 
-```bash
-docker compose -f dev-tools/docker-compose.yml up -d --build
-```
+- `TS_AUTHKEY` (recommended for first-time setup)
 
-3. Start all services:
+### Common
+
+- `TS_HOSTNAME` (defaults to `openclaw`)
+- `OPENCLAW_STATE_DIR` (defaults to `/openclaw/.openclaw`)
+
+### Optional model/search keys
+
+- `ANTHROPIC_API_KEY`
+- `OPENAI_API_KEY`
+- `GEMINI_API_KEY`
+- `COPILOT_GITHUB_TOKEN`
+- `OPENROUTER_API_KEY`
+- `XAI_API_KEY`
+- `BRAVE_API_KEY`
+
+## Run
 
 ```bash
 docker compose up -d --build
 ```
 
-4. Access services:
-   - **FileBrowser**: http://localhost:$FB_PORT (default: http://localhost:8080)
-   - **OpenClaw**: via Tailscale network (required for VPN access)
+## First-time setup
+
+After the container is running, execute OpenClaw onboarding once:
+
+```bash
+docker compose exec openclaw node dist/index.js onboard
+```
+
+You only need this on the first run.
+
+Check logs:
+
+```bash
+docker compose logs -f openclaw
+```
+
+Stop:
+
+```bash
+docker compose down
+```
+
+## Notes
+
+- Tailscale state is persisted in Docker volume `openclaw-tailscale-state`.
+- OpenClaw data is persisted in Docker volume `openclaw-data`.
+- If `TS_AUTHKEY` is omitted, the container uses existing Tailscale state.
